@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Персонал · Соответствие — OPC</title>
+<style>
+  :root{color-scheme:light;
+    --bg:#f6f1ea;--card:#ffffff;--ink:#2b2018;--dim:#7c6b5b;--faint:#a9978a;
+    --line:#e7ddd0;--gold:#b8863b;--gold-d:#9a6f2d;--good:#3f9d6b;--good-bg:#e7f4ec;
+    --warn:#c98a2b;--warn-bg:#fbf1df;--bad:#c0584a;--bad-bg:#fae9e6;
+    --shadow:0 1px 3px rgba(43,32,24,.06),0 6px 20px rgba(43,32,24,.05);}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;-webkit-font-smoothing:antialiased;padding:22px 18px 40px}
+  .wrap{max-width:880px;margin:0 auto}
+  header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  .eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-d);font-weight:700;margin:0 0 6px}
+  h1{font-size:25px;margin:0;font-weight:700;letter-spacing:-.01em}
+  .sub{color:var(--dim);font-size:13px;margin-top:4px}
+  .refresh{border:1px solid var(--gold);background:var(--gold);color:#fff;font-weight:700;font-size:13px;padding:10px 16px;border-radius:10px;cursor:pointer;box-shadow:var(--shadow);white-space:nowrap}
+  .refresh:disabled{opacity:.6;cursor:default}
+  .snapbar{background:#fbf6ee;border:1px solid var(--line);border-radius:12px;padding:11px 14px;font-size:13px;color:var(--dim);margin-bottom:18px}
+  .snapbar b{color:var(--ink)}
+  .ctl-label{font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin:14px 0 6px}
+  .controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .btns{display:inline-flex;flex-wrap:wrap;gap:8px}
+  .btns button{border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:13px;font-weight:600;padding:9px 15px;border-radius:10px;cursor:pointer;transition:.12s;white-space:nowrap;box-shadow:var(--shadow)}
+  .btns button:hover{border-color:var(--gold)}
+  .btns button.on{background:var(--gold);border-color:var(--gold);color:#fff}
+  .btns.multi button.on{background:var(--bad);border-color:var(--bad);color:#fff}
+  .btns button.clear{color:var(--gold-d);border-style:dashed}
+  .scope-line{font-size:13px;color:var(--dim);margin:16px 0 12px}
+  .scope-line b{color:var(--ink)}
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
+  @media(max-width:620px){.cards{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow)}
+  .card .lbl{font-size:12px;color:var(--dim);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+  .card .rw{display:flex;align-items:baseline;gap:10px;margin:8px 0 2px}
+  .card .big{font-size:40px;font-weight:800;letter-spacing:-.02em;line-height:1}
+  .delta{font-size:13px;font-weight:800;padding:2px 8px;border-radius:99px}
+  .delta.up{color:var(--good);background:var(--good-bg)}.delta.down{color:var(--bad);background:var(--bad-bg)}.delta.flat{color:var(--faint);background:#efe7da}
+  .card .cnt{font-size:12px;color:var(--faint)}
+  .bar{height:7px;border-radius:99px;background:#eee5d8;margin-top:13px;overflow:hidden}
+  .bar i{display:block;height:100%;border-radius:99px}
+  .g{color:var(--good)}.w{color:var(--warn)}.b{color:var(--bad)}
+  .bg-g{background:var(--good)}.bg-w{background:var(--warn)}.bg-b{background:var(--bad)}
+  .section-t{font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--dim);margin:26px 0 10px}
+  table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}
+  th,td{padding:11px 14px;text-align:right;font-size:13.5px;border-bottom:1px solid var(--line)}
+  th:first-child,td:first-child{text-align:left}
+  thead th{background:#faf5ee;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--dim);font-weight:700}
+  tbody tr:last-child td{border-bottom:0}
+  tr.total td{font-weight:800;background:#faf6f0}
+  tr.sel td{background:#f7edd7;font-weight:700}
+  tr.sel td:first-child{border-left:3px solid var(--gold)}
+  .pill{display:inline-block;min-width:44px;padding:3px 8px;border-radius:99px;font-weight:700;font-size:12.5px}
+  .d{font-size:11px;font-weight:700;margin-left:5px}
+  .d.up{color:var(--good)}.d.down{color:var(--bad)}.d.flat{color:var(--faint)}
+  .emp th.c,.emp td.c{text-align:center;width:54px}
+  .emp td.addr{color:var(--dim);font-size:12.5px}.emp td.name{font-weight:600}
+  .chk{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:12px;font-weight:800}
+  .chk.y{background:var(--good-bg);color:var(--good)}.chk.n{background:var(--bad-bg);color:var(--bad)}
+  .emp tbody tr:nth-child(even) td{background:#fcf9f4}
+  .hint{font-size:12px;color:var(--faint);margin:8px 0 10px}
+  .foot{margin-top:18px;font-size:12px;color:var(--faint)}
+  .state{padding:40px 0;text-align:center;color:var(--dim);font-size:14px}
+  .err{color:var(--bad)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <p class="eyebrow">One Price Coffee · HR</p>
+      <h1>Персонал · Соответствие</h1>
+      <div class="sub">Обученность · Медкнижки · Аттестация — % от состава</div>
+    </div>
+    
+  </header>
+  <div id="app"><div class="state">Загружаю снимки…</div></div>
+</div>
+<script>
+window.onerror=function(m,src,l,c,e){var a=document.getElementById('app');if(a)a.innerHTML='<div style="padding:30px;color:#c0584a;font:14px sans-serif">Сбой страницы: '+m+' (строка '+l+')</div>';return false;};
+const SHEET_ID="1TlQfmVVdi4-JfjapvH6zwf8761OrzsNLTtU8cU-HSak";
+const FOLDER_ID="17Fgx4Sk6yiGK_LErB8Y3Ewz4GD-t2Hly";
+const READ="mcp__3338479c-e54f-4218-be35-39f4b8c75e46__read_file_content";
+const SEARCH="mcp__3338479c-e54f-4218-be35-39f4b8c75e46__search_files";
+const COPY="mcp__3338479c-e54f-4218-be35-39f4b8c75e46__copy_file";
+const TU_NAMES={R:"Тулебаев Р.",E:"Рукосуева Е.",V:"вакансия (МСК/МО)"};
+const ORDER=["R","E","V"];
+const LS={get:(k,d)=>{try{const v=localStorage.getItem(k);return v===null?d:v;}catch(e){return d;}},set:(k,v)=>{try{localStorage.setItem(k,v);}catch(e){}}};
+let MODE=LS.get("hr_mode","barista"), TU=LS.get("hr_tu","ALL");
+let CATS=[]; try{CATS=JSON.parse(LS.get("hr_cats","[]"));}catch(e){CATS=[];}
+let SNAPS=null, STATE="load", ERRMSG="";
+
+function grp(t){t=(t||"").trim();if(t==="Рафаэль")return"R";if(t==="Елизавета")return"E";return"V";}
+function bn(x){return String(x).trim().toUpperCase()==="TRUE"?1:0;}
+function cleanAddr(s){return (s||"").replace(/^Кофейня\s+/i,"").trim();}
+function fmt(d){const s=typeof d==="string"?d:new Date(d).toISOString();const x=new Date(s);
+  return String(x.getDate()).padStart(2,"0")+"."+String(x.getMonth()+1).padStart(2,"0");}
+function mondayOf(d){const x=new Date(d);const k=(x.getDay()+6)%7;x.setDate(x.getDate()-k);
+  return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0");}
+function parseSheets(text){
+  const L=text.split(/\r?\n/), segs=[]; let i=0;
+  const cells=s=>s.trim().replace(/^\|/,'').replace(/\|$/,'').split('|').map(c=>c.trim());
+  while(i<L.length){
+    if(L[i].trim().startsWith('|') && i+1<L.length && L[i+1].includes(':-:')){
+      const hdr=cells(L[i]); let j=i+2; const data=[];
+      while(j<L.length && L[j].trim().startsWith('|') && !L[j].includes(':-:')){
+        if(j+1<L.length && L[j+1].includes(':-:')) break; data.push(cells(L[j])); j++;
+      }
+      segs.push({hdr,data}); i=j;
+    } else i++;
+  }
+  return segs;
+}
+function findSheet(segs,keys){return segs.find(s=>keys.every(k=>s.hdr.includes(k)));}
+function rowsFrom(seg,skip){
+  const H=seg.hdr, ix=n=>H.indexOf(n);
+  const cTU=ix("ТУ"),cFIO=ix("ФИО"),cCOD=ix("Код точки"),cTT=ix("Точка"),cMED=ix("Медкнижка"),cEKV=ix("Есть эквио"),cATT=ix("Атт сдана");
+  const out=[];
+  seg.data.forEach(r=>{
+    if(r.length<=Math.max(cMED,cEKV,cATT,cCOD))return;
+    if(!(r[cFIO]||"").trim())return;
+    if((r[cCOD]||"").trim()==="#N/A")return;
+    if(skip&&skip(r,ix))return;
+    out.push([grp(r[cTU]),r[cFIO].trim(),cleanAddr(r[cTT]),bn(r[cMED]),bn(r[cEKV]),bn(r[cATT])]);
+  });
+  return out;
+}
+function rowsFromText(text){
+  const segs=parseSheets(text);
+  const sE=findSheet(segs,["Данные внесены в кадрах","Медкнижка","Уволен"]);
+  const sT=findSheet(segs,["Не будет стажироваться","Трудоустроен (более 5 смен)"]);
+  if(!sE||!sT) throw new Error("в снимке не найдены листы Сотрудники/Стажёры");
+  return {barista:rowsFrom(sE,(r,ix)=>bn(r[ix("Уволен")])===1),
+          stazh:rowsFrom(sT,(r,ix)=>bn(r[ix("Не будет стажироваться")])===1)};
+}
+function accFromRows(rows){const a={R:[0,0,0,0],E:[0,0,0,0],V:[0,0,0,0]};
+  rows.forEach(r=>{a[r[0]][0]++;a[r[0]][1]+=r[3];a[r[0]][2]+=r[4];a[r[0]][3]+=r[5];});return a;}
+
+async function call(tool,args){
+  const r=await window.cowork.callMcpTool(tool,args);
+  let p=r.structuredContent;
+  if(!p && r.content && r.content[0] && r.content[0].text){p=JSON.parse(r.content[0].text);}
+  return p;
+}
+async function readText(fileId){const p=await call(READ,{fileId});return (p&&(p.fileContent||p.text))||"";}
+async function listCopies(){const p=await call(SEARCH,{query:`parentId = '${FOLDER_ID}' and title contains 'hr_sheet_'`});return (p&&p.files)||[];}
+async function copyNow(){const ymd=new Date().toISOString().slice(0,10);
+  await call(COPY,{fileId:SHEET_ID,parentId:FOLDER_ID,title:"hr_sheet_"+ymd+"_"+Date.now()});}
+async function loadAll(){
+  let files=await listCopies();
+  if(files.length===0){ await copyNow(); files=await listCopies(); }
+  files.forEach(f=>{f._t=f.createdTime||f.modifiedTime||"";f._wm=mondayOf(f._t);});
+  files.sort((a,b)=>String(b._t).localeCompare(String(a._t)));
+  const byWeek={};
+  files.forEach(f=>{ if(!byWeek[f._wm]) byWeek[f._wm]=f; }); // latest per week (files already desc)
+  const weeks=Object.keys(byWeek).sort().reverse();
+  const curF=byWeek[weeks[0]], prevF=weeks[1]?byWeek[weeks[1]]:null;
+  const cur={weekMonday:curF._wm,takenAt:curF._t,rows:rowsFromText(await readText(curF.id))};
+  const prev=prevF?{weekMonday:prevF._wm,takenAt:prevF._t,rows:rowsFromText(await readText(prevF.id))}:null;
+  SNAPS={current:cur,prev:prev};
+}
+async function init(){try{await loadAll();STATE="ok";}catch(e){STATE="err";ERRMSG=e.message;console.error(e);}render();}
+async function refresh(){
+  if(STATE==="busy")return; STATE="busy"; render();
+  try{ await copyNow(); await loadAll(); STATE="ok"; }
+  catch(e){ STATE="err"; ERRMSG=e.message; console.error(e); }
+  render();
+}
+function cls(p){return p>=80?"g":p>=50?"w":"b";}
+function bgcls(p){return p>=80?"bg-g":p>=50?"bg-w":"bg-b";}
+function pillVar(p){return p>=80?["good","good-bg"]:p>=50?["warn","warn-bg"]:["bad","bad-bg"];}
+function deltaBadge(d,big){
+  if(d===null)return"";
+  const cl=d>0?"up":d<0?"down":"flat", sym=d>0?"▲":d<0?"▼":"=";
+  return big?`<span class="delta ${cl}">${sym} ${(d>0?"+":"")+d} п.п.</span>`:`<span class="d ${cl}">${sym}${Math.abs(d)}</span>`;
+}
+function render(){
+  const app=document.getElementById("app");
+  const btn=document.getElementById("refreshBtn");
+  if(btn){btn.disabled=(STATE==="busy"||STATE==="load");btn.textContent=STATE==="busy"?"Обновляю…":"Обновить данные";btn.onclick=refresh;}
+  if(STATE==="load"){app.innerHTML='<div class="state">Загружаю снимки…</div>';return;}
+  if(STATE==="busy"){app.innerHTML='<div class="state">Сохраняю снимок недели и пересчитываю…</div>';return;}
+  if(STATE==="err"){app.innerHTML='<div class="state err">Ошибка: '+ERRMSG+'<br>Попробуйте «Обновить данные».</div>';return;}
+  if(!SNAPS||!SNAPS.current){app.innerHTML='<div class="state">Нет снимков. Нажмите «Обновить данные».</div>';return;}
+  const cur=SNAPS.current, prev=SNAPS.prev;
+  const accCur=accFromRows(cur.rows[MODE]||[]);
+  const accPrev=prev?accFromRows(prev.rows[MODE]||[]):null;
+  const groups=TU==="ALL"?ORDER:[TU];
+  const sum=acc=>{let n=0,m=0,k=0,a=0;groups.forEach(g=>{n+=acc[g][0];m+=acc[g][1];k+=acc[g][2];a+=acc[g][3];});return[n,m,k,a];};
+  const [n,med,ekv,att]=sum(accCur);
+  const pc=(x,nn)=>nn?Math.round(x/nn*100):0;
+  const curP=[pc(med,n),pc(ekv,n),pc(att,n)];
+  let prevP=null; if(accPrev){const[pn,pm,pk,pa]=sum(accPrev);prevP=[pc(pm,pn),pc(pk,pn),pc(pa,pn)];}
+  const dlt=i=>prevP?curP[i]-prevP[i]:null;
+  const modeLabel=MODE==="barista"?"Бариста (действующие)":"Стажёры (активные)";
+  const scopeLabel=TU==="ALL"?"вся сеть":TU_NAMES[TU];
+  const metric=(lbl,i,nu)=>`<div class="card"><div class="lbl">${lbl}</div>
+    <div class="rw"><div class="big ${cls(curP[i])}">${curP[i]}%</div>${deltaBadge(dlt(i),true)}</div>
+    <div class="cnt">${nu} из ${n} чел.</div>
+    <div class="bar"><i class="${bgcls(curP[i])}" style="width:${curP[i]}%"></i></div></div>`;
+  const sumAll=acc=>{let N=0,M=0,K=0,A=0;ORDER.forEach(g=>{N+=acc[g][0];M+=acc[g][1];K+=acc[g][2];A+=acc[g][3];});return[N,M,K,A];};
+  const rowFor=g=>{
+    const a=accCur[g], nn=a[0], p=x=>nn?Math.round(x/nn*100):0;
+    const ap=accPrev?accPrev[g]:null, np=ap?ap[0]:0, pp=x=>np?Math.round(x/np*100):0;
+    const pill=(v,vi)=>{const cv=p(v);const[c,bg]=pillVar(cv);const d=ap?cv-pp(ap[vi]):null;
+      return `<span class="pill" style="color:var(--${c});background:var(--${bg})">${nn?cv+'%':'—'}</span>${nn&&ap?deltaBadge(d,false):''}`;};
+    return `<tr class="${TU===g?'sel':''}"><td>${TU_NAMES[g]}</td><td>${nn}</td><td>${pill(a[1],1)}</td><td>${pill(a[2],2)}</td><td>${pill(a[3],3)}</td></tr>`;
+  };
+  const [N,M,K,A]=sumAll(accCur);const pa=x=>N?Math.round(x/N*100):0;
+  const tot=`<tr class="total"><td>Все</td><td>${N}</td><td>${pa(M)}%</td><td>${pa(K)}%</td><td>${pa(A)}%</td></tr>`;
+
+  let list=(cur.rows[MODE]||[]).map(r=>({g:r[0],fio:r[1],addr:r[2],m:r[3],k:r[4],a:r[5]})).filter(r=>TU==="ALL"||r.g===TU);
+  if(CATS.length) list=list.filter(r=>CATS.every(c=>r[c]===0));
+  list.sort((a,b)=>a.addr.localeCompare(b.addr,"ru")||a.fio.localeCompare(b.fio,"ru"));
+  const chk=v=>`<span class="chk ${v?'y':'n'}">${v?'✓':'—'}</span>`;
+  const empRows=list.map(r=>`<tr><td class="name">${r.fio}</td><td class="addr">${r.addr}</td><td class="c">${chk(r.m)}</td><td class="c">${chk(r.k)}</td><td class="c">${chk(r.a)}</td></tr>`).join("");
+  const catBtn=(c,l)=>`<button data-cat="${c}" class="${CATS.includes(c)?'on':''}">${l}</button>`;
+  const tuBtn=(v,l)=>`<button data-tu="${v}" class="${TU===v?'on':''}">${l}</button>`;
+  const snapInfo=`Данные на <b>24.06.2026</b> · из Google-таблицы «Отдел обучения» (статичная копия, обновляется по команде)`;
+
+  app.innerHTML=`
+    <div class="snapbar">${snapInfo}</div>
+    <div class="ctl-label">Режим</div>
+    <div class="controls"><div class="btns">
+      <button data-m="barista" class="${MODE==='barista'?'on':''}">Бариста</button>
+      <button data-m="stazh" class="${MODE==='stazh'?'on':''}">Стажёры</button>
+    </div></div>
+    <div class="ctl-label">Управляющий (ТУ)</div>
+    <div class="controls"><div class="btns">
+      ${tuBtn("ALL","Все")}${tuBtn("R","Тулебаев Р.")}${tuBtn("E","Рукосуева Е.")}${tuBtn("V","вакансия (МСК/МО)")}
+    </div></div>
+    <p class="scope-line">${modeLabel} · <b>${scopeLabel}</b> · <b>${n}</b> чел.</p>
+    <div class="cards">
+      ${metric("Медкнижка",0,med)}${metric("Обучение (эквио)",1,ekv)}${metric("Аттестация",2,att)}
+    </div>
+    <p class="section-t">Разбивка по ТУ — ${modeLabel} (Δ к пред. неделе)</p>
+    <table>
+      <thead><tr><th>ТУ</th><th>Чел.</th><th>Медкнижка</th><th>Обучение</th><th>Аттестация</th></tr></thead>
+      <tbody>${ORDER.map(rowFor).join("")}${tot}</tbody>
+    </table>
+    <p class="section-t">Список сотрудников — ${scopeLabel} (${list.length})</p>
+    <div class="ctl-label">Фильтр: у кого нет (несколько = И)</div>
+    <div class="controls"><div class="btns multi">
+      ${catBtn("m","Нет медкнижки")}${catBtn("k","Нет обучения")}${catBtn("a","Нет аттестации")}
+      ${CATS.length?'<button data-cat="__clear" class="clear">Сбросить</button>':''}
+    </div></div>
+    <p class="hint">${CATS.length?'Показаны те, у кого нет всех отмеченных пунктов сразу':'Выберите категории, чтобы отфильтровать пробелы'}</p>
+    <table class="emp">
+      <thead><tr><th>ФИО</th><th>Кофейня</th><th class="c">Мед</th><th class="c">Обуч</th><th class="c">Атт</th></tr></thead>
+      <tbody>${empRows||'<tr><td colspan="5" style="text-align:center;color:var(--faint)">нет записей</td></tr>'}</tbody>
+    </table>
+    <div class="foot">Источник: Google-таблица «Отдел обучения». Статичный срез, обновляется по команде. ✓ — есть, — — нет.</div>`;
+
+  app.querySelectorAll("button[data-m]").forEach(b=>b.onclick=()=>{MODE=b.dataset.m;LS.set("hr_mode",MODE);render();});
+  app.querySelectorAll("button[data-tu]").forEach(b=>b.onclick=()=>{TU=b.dataset.tu;LS.set("hr_tu",TU);render();});
+  app.querySelectorAll("button[data-cat]").forEach(b=>b.onclick=()=>{const c=b.dataset.cat;
+    if(c==="__clear")CATS=[];else if(CATS.includes(c))CATS=CATS.filter(x=>x!==c);else CATS=[...CATS,c];
+    LS.set("hr_cats",JSON.stringify(CATS));render();});
+}
+const EMB={"barista":[["E","Витязь Дарья Игоревна","СПБ Московский 188Г",1,1,1],["E","Тарасенко Матвей Дмитриевич","СПБ Московский 188Г",1,1,1],["E","Заривная Ксения Николаевна","СПБ Московский 188Г",1,1,1],["E","Ветлугина София Константиновна","СПБ Московский 188Г",1,1,1],["E","Веселова Варвара Алексеевна","СПБ Заневский Каскад",1,1,1],["E","Калугин Данил Павлович","СПБ Заневский Каскад",1,1,1],["E","Пыркин Антон Алексеевич","СПБ Заневский Каскад",1,1,1],["E","Травина Валерия Станиславовна","СПБ Заневский Каскад",1,1,1],["E","Тарасов Александр Дмитриевич","СПБ Заневский Каскад",1,1,1],["E","Карибская Елизавета Максимовна","СПБ Заневский Каскад",1,1,1],["E","Ярошенко Варвара Алексеевна","СПБ Московский 2",1,1,0],["E","Федорова Виолетта Зазаевна","СПБ Заневский Каскад",1,1,0],["R","Барышова Алёна Алексеевна","СПБ Проспект Просвещения 36",1,1,1],["R","Зайцева Елизавета Сергеевна","СПБ Проспект Просвещения 36",1,1,1],["R","Савонькина Ольга Сергеевна","СПБ Проспект Просвещения 36",1,1,1],["R","Хорина Варвара Юрьевна","СПБ Проспект Просвещения 36",1,1,1],["R","Салми София Хафидовна","СПБ Проспект Просвещения",1,1,1],["R","Белошапкина Виктория Михайловна","СПБ Проспект Просвещения",1,1,1],["R","Алиханова Милена Магомедвалиева","СПБ Проспект Просвещения",1,1,1],["E","Харченко Елизавета Евеньевна","СПБ 6-ая линия ВО, уч.11",1,1,1],["R","Машкова София Владимировна","СПБ Проспект Просвещения",1,1,1],["R","Семенова Арина Витальевна","СПб, пл.Стачек, уч. 15",1,1,1],["E","Петряшова Наталья Алексеевна","СПБ Большая Морская 13",1,1,1],["E","Бережнова Ксения Игоревна","СПБ Большая Морская 13",1,1,1],["E","Лупоносов Данил Олегович","СПБ Большая Морская 13",1,1,1],["E","Сафронова Алина Алексеевна","СПБ Большая Морская 13",1,1,1],["E","Троицкая Кристина Алексеевна","СПБ Балканская площадь 5 лит В",1,1,1],["E","Стробыкина Анастасия Владимировна","СПБ Балканская площадь 5 лит В",1,1,1],["E","Юрьева Анастасия Сергеевна","СПБ Заневский Каскад",1,1,0],["E","Белоножко Полина Сергеевна","СПБ Заневский Каскад",1,1,0],["E","Суслонова Мария Сергеевна","г. Санкт-Петербург, пр.Большой В.О., д.68/А",1,1,1],["E","Богданов Вадим Андреевич","г. Санкт-Петербург, пр.Большой В.О., д.68/А",1,1,1],["E","Одинцов Денис Михайлович","г. Санкт-Петербург, пр.Большой В.О., д.68/А",1,1,1],["E","Петров Даниил Станиславович","г. Санкт-Петербург, пр.Большой В.О., д.68/А",1,1,1],["V","Ложников Пётр Алексеевич","МО Реутов ТЦ Реутов парк",0,1,0],["E","Ярославцева Екатерина Андреевна","г. Санкт-Петербург, пр.Большой В.О., д.68/А",1,1,1],["E","Кошеленко Анастасия Александровна","г. Санкт-Петербург, пр.Большой В.О., д.68/А",1,1,1],["E","Устинова София Павловна","г. Санкт-Петербург, пр.Большой В.О., д.68/А",1,1,1],["E","Девицын Николай Романович","г. Санкт-Петербург, пр.Большой В.О., д.68/А",1,1,1],["R","Евстигнеева Ангелина Алексеевна","СПБ ул. Восстания, д.1",1,1,1],["R","Гагиев Адам Тимурович","СПБ ул. Восстания, д.1",1,1,1],["R","Борисова Екатерина Богдановна","СПБ ул. Восстания, д.1",1,1,1],["R","Быкова Софья Сергеевна","СПБ Бабушкина 69",1,1,0],["V","Бирюков Ярослав Алексеевич","МСК ул. Земляной Вал, д. 27, стр. 2",1,0,0],["R","Данковская Алиса Юрьевна","СПБ Лесной пр-кт 61 к 3",1,1,1],["R","Горгопова Анастасия Денисовна","СПБ Лесной пр-кт 61 к 3",1,1,1],["R","Иванов Михаил Михайлович","СПб, м. Политехническая, вх. 1 (ул. Политехническая)",0,1,1],["R","Моисеенко Вероника Максимовна","СПб, м. Политехническая, вх. 1 (ул. Политехническая)",1,1,0],["R","Конищева Дарья Павловна","СПБ ул. Восстания, д.1",1,1,0],["E","Копьева Дарья Алексеевна","СПБ Московский 2",1,1,1],["E","Манзырева Александра Сергеевна","СПБ Московский 2",1,1,1],["E","Рубекина Анастасия Игоревна","СПБ Московский 2",1,1,1],["V","Величко Ярослав Анатольевич","МСК ул. Земляной Вал, д. 27, стр. 2",1,1,0],["V","Ахметшина Диана Рамилевна","МСК ул. Земляной Вал, д. 27, стр. 2",1,1,0],["V","Екимова Лика Сергеевна","МСК Павелецкая пл. 3",0,0,0],["V","Шендорова Полина Владимировна","МСК ул. Земляной Вал, д. 27, стр. 2",1,1,1],["V","Фуркало Александра Юрьевна","МСК ул. Земляной Вал, д. 27, стр. 2",1,1,0],["V","Ефремов Кирилл Витальевич","МСК ул. Земляной Вал, д. 27, стр. 2",1,1,0],["V","Греку Эльвира Ивановна","МСК Люсиновская 2 с 1",0,1,1],["V","Лысенкова Ульяна Васильевна","МСК Люсиновская 2 с 1",1,1,1],["V","Дронова Нина Николаевна","МСК Люсиновская 2 с 1",0,1,1],["V","Лобанова Варвара Аркадьевна","МСК Люсиновская 2 с 1",1,0,0],["V","Чернова Виктория Михайловна","МСК Павелецкая пл. 3",1,1,1],["V","Смыслов Руслан Владиславович","МСК Павелецкая пл. 3",1,1,1],["V","Баланда Александра Сергеевна","МСК Павелецкая пл. 3",1,1,0],["V","Кашина Анастасия Михайловна","МСК Павелецкая пл. 3",1,1,1],["R","Складчикова Василина Денисовна","СПБ Бабушкина 69",1,1,0],["R","Ямпольская Стефания Михайловна","СПБ Бабушкина 69",1,1,0],["V","Емцев Степан Алексеевич","МО Реутов ТЦ Реутов парк",0,1,0],["R","Антонова Мария Олеговна","СПБ Бабушкина 69",0,0,0],["V","Вовк Таисия Сергеевна","МО Реутов ТЦ Реутов парк",0,1,0],["V","Борисова Екатерина Дмитриевна","МО Реутов ТЦ Реутов парк",0,1,0],["R","Кулиш Валерия Владимировна","СПБ Бабушкина 69",1,1,0],["V","Калина Екатерина Дмитриевна","МО Подольск Вокзальная площадь 2",1,1,1],["V","Полихрониди Иракли Давидович","МО Подольск Вокзальная площадь 2",1,1,1],["V","Аманова Арина Алексеевна","МО Подольск Вокзальная площадь 2",1,1,1],["V","Ионова Валерия Валерьевна","МО Подольск Вокзальная площадь 2",1,1,1],["V","Грачева Анна Леонидовна","МО Подольск Вокзальная площадь 2",1,1,1],["V","Горелова Алёна Романовна","МО Подольск Вокзальная площадь 4",1,1,1],["V","Лавшук Елизавета Михайловна","МО Подольск Вокзальная площадь 4",1,1,1],["V","Загодиренко Полина Романовна","МО Подольск Вокзальная площадь 4",1,1,1],["V","Кеменова Вероника Евгеньевна","МО Подольск Вокзальная площадь 4",1,1,1],["V","Цветкова Анастасия Алексеевна","МО Подольск Вокзальная площадь 4",1,1,1],["V","Белякова Софья Андреевна","МО Подольск Вокзальная площадь 4",1,1,1],["V","Хуторова Екатерина Сергеевна","МО Подольск Вокзальная площадь 4",1,1,0],["V","Коклина Виктория Дмитриевна","МСК Люберцы Инициативная 14с3",1,1,1],["V","Чебанюк Мария Сергеевна","МСК Люберцы Инициативная 14с3",1,1,1],["V","Стамат Владимир Иванович","МСК Люберцы Инициативная 14с3",1,1,1],["V","Погодина Вероника Сергеевна","МСК Люберцы Инициативная 14с3",1,1,0],["R","Белых София Александровна","СПБ Площадь Стачек д 9",0,1,0],["E","Рязанова Анфиса Евгеньевна","СПБ Большая Морская 13",1,1,1],["R","Кожемякина Елизавета Александровна","СПБ Площадь Стачек д 9",0,1,0],["R","Перцов Арсений Сергеевич","СПБ ул. Восстания, д.1",1,1,0],["R","Баженов Кирилл Витальевич","СПБ Бабушкина 69",1,1,0],["E","Спирягина Варвара Филипповна","СПБ Балканская площадь 5 лит В",1,1,0],["E","Скачков Иван Андреевич","г. Санкт-Петербург, пр.Большой В.О., д.68/А",1,1,0],["E","Журавлева Маргарита Дмитриевна","г. Санкт-Петербург, пр.Большой В.О., д.68/А",1,1,0],["E","Бадыра Алиса Вадимовна","СПБ Московский 188Г",1,1,0],["E","Головкина Александра Артуровна","СПБ 6-ая линия ВО, уч.11",0,1,1],["V","Колесова Мария Александровна","МСК Павелецкая пл. 3",1,0,0],["R","Щербак Артем Сергеевич","СПБ Бабушкина 69",0,0,0],["R","Огнева Кристина Дмитриевна","СПб, м. Политехническая, вх. 1 (ул. Политехническая)",0,1,0],["R","Мурашева Ксения Сергеевна","СПБ Площадь Стачек д 9",0,1,0],["R","Харрасова Алина Эдуардовна","СПБ Бабушкина 69",1,1,1],["R","Бронникова Валентина Михайловна","СПБ Проспект Просвещения",0,1,0],["R","Текутьева Екатерина Александровна","СПБ Лесной пр-кт 61 к 3",1,1,0],["R","Сергунов Вадим Антонович","СПб, м. Политехническая, вх. 1 (ул. Политехническая)",0,1,0],["R","Хыдывова Эрика Маликовна","СПБ Площадь Стачек д 9",0,0,0],["R","Тутушева Дарья Данииловна","СПБ Проспект Просвещения",0,1,0],["R","Кончакова Софья Михайловна","СПБ Проспект Просвещения",0,0,0],["R","Овсянникова Майя Александровна","СПБ ул. Восстания, д.1",1,1,0],["R","Казакова Мария Валерьевна","СПБ Лесной пр-кт 61 к 3",1,1,0],["R","Котовская Арина Андреевна","СПб, пл.Стачек, уч. 15",0,1,0],["V","Малюк Арина Григорьевна","МО Реутов ТЦ Реутов парк",1,1,0],["E","Чулков Сергей Викторович","г. Санкт-Петербург, пр.Большой В.О., д.68/А",0,1,0],["R","Виролайнен Дарья Тимофеевна","СПБ Проспект Просвещения",0,1,0],["R","Пискунова Анастасия Максимовна","СПБ Лесной пр-кт 61 к 3",0,1,0],["E","Дуракова Анастасия Константиновна","г. Санкт-Петербург, пр.Большой В.О., д.68/А",0,0,0],["V","Якомаскина Ксения Валерьевна","МО Подольск Вокзальная площадь 2",0,0,0],["V","Громов Лев Игоревич","МО Подольск Вокзальная площадь 2",0,1,0],["V","Сергеев Всеволод Андреевич","МО Подольск Вокзальная площадь 2",0,1,0],["V","Башканова Анастасия Александровна","МО Реутов ТЦ Реутов парк",0,1,0],["V","Будакова Ульяна Сергеевна","МСК Люберцы Инициативная 14с3",0,1,0],["V","Кошелева Елизавета Ауреловна","МСК Люберцы Инициативная 14с3",0,0,0],["V","Сидоркин Никита Олегович","МСК Павелецкая пл. 3",0,1,1],["R","Белокреницкая Виктория Алексеевна","СПб, м. Политехническая, вх. 1 (ул. Политехническая)",0,0,0],["E","Петрова Надежда Петровна","СПБ Заневский Каскад",0,0,0],["E","Лебедева Полина Сергеевна","СПБ Заневский Каскад",0,0,0],["V","Мохова Кристина Денисовна","МСК ул. Земляной Вал, д. 27, стр. 2",0,0,0],["V","Гаврилов Сергей","МСК Люсиновская 2 с 1",0,1,0],["V","Ляпина Анастасия","МО Реутов ТЦ Реутов парк",0,1,0],["R","Кружанова Маргарита Константиновна","СПб, м. Политехническая, вх. 1 (ул. Политехническая)",0,0,0]],"stazh":[["R","Конищева Дарья Павловна","СПБ ул. Восстания, д.1",1,1,0],["R","Ямпольская Стефания Михайловна","СПБ Бабушкина 69",1,1,0],["R","Белых София Александровна","СПБ Площадь Стачек д 9",0,1,0],["R","Огнева Кристина Дмитриевна","СПб, м. Политехническая, вх. 1 (ул. Политехническая)",0,1,0],["R","Мурашева Ксения Сергеевна","СПБ Площадь Стачек д 9",0,1,0],["E","Скачков Иван Андреевич","г. Санкт-Петербург, пр.Большой В.О., д.68/А",0,1,0],["R","Кужилева Софья Евгеньевна","СПб, м. Политехническая, вх. 1 (ул. Политехническая)",0,0,0],["V","Погодина Вероника Сергеевна","МСК Люберцы Инициативная 14с3",1,1,0],["R","Бронникова Валентина Михайловна","СПБ Проспект Просвещения",0,1,0],["R","Журавлева Маргарита Дмитриевна","г. Санкт-Петербург, пр.Большой В.О., д.68/А",0,1,0],["E","Бадыра Алиса Вадимовна","СПБ Московский 188Г",1,1,0],["R","Сергунов Вадим Антонович","СПб, м. Политехническая, вх. 1 (ул. Политехническая)",0,1,0],["R","Хыдывова Эрика Маликовна","СПБ Площадь Стачек д 9",0,0,0],["V","Малюк Арина Григорьевна","МО Реутов ТЦ Реутов парк",1,1,0],["R","Тутушева Дарья Данииловна","СПБ Проспект Просвещения",0,1,0],["R","Кончакова Софья Михайловна","СПБ Проспект Просвещения",0,0,0],["R","Ерофеева Дарья","СПБ Бабушкина 69",0,0,0],["V","Мохова Кристина","МСК ул. Земляной Вал, д. 27, стр. 2",0,0,0],["V","Громов Лев","МО Подольск Вокзальная площадь 2",0,1,0],["R","Котовская Арина Андреевна","СПб, пл.Стачек, уч. 15",0,1,0],["R","Кружанова Маргарита","СПб, м. Политехническая, вх. 1 (ул. Политехническая)",0,0,0],["R","Бурак Ксения","СПб, м. Политехническая, вх. 1 (ул. Политехническая)",0,0,0],["R","Виролайнен Дарья Тимофеевна","СПБ Проспект Просвещения",0,1,0],["E","Чулков Сергей","г. Санкт-Петербург, пр.Большой В.О., д.68/А",0,1,0],["E","Дуракова Анастасия","г. Санкт-Петербург, пр.Большой В.О., д.68/А",0,0,0],["R","Гусакова Ксения","СПб, м. Политехническая, вх. 1 (ул. Политехническая)",0,0,0],["V","Всеволод Сергеев","МО Подольск Вокзальная площадь 2",0,1,0],["V","Будакова Ульяна","МСК Люберцы Инициативная 14с3",0,1,0],["V","Кошелева Елизавета","МСК Люберцы Инициативная 14с3",0,0,0],["V","Рыбникова Анастасия","МО Реутов ТЦ Реутов парк",0,0,0],["V","Гаврилов Сергей","МСК Люсиновская 2 с 1",0,1,0],["V","Башканова Анастасия","МО Реутов ТЦ Реутов парк",0,1,0],["R","Белокринницкая Виктория","СПб, м. Политехническая, вх. 1 (ул. Политехническая)",0,0,0],["E","Лебедева Полина","СПБ Заневский Каскад",0,0,0],["E","Петрова Надежда","СПБ Заневский Каскад",0,0,0],["V","Ляпина Анастасия","МО Реутов ТЦ Реутов парк",0,1,0]]};
+SNAPS={current:{weekMonday:"2026-06-22",takenAt:"2026-06-24T00:00:00.000Z",rows:EMB},prev:null};
+STATE="ok"; try{render();}catch(e){var a=document.getElementById("app");if(a)a.innerHTML='<div style="padding:30px;color:#c0584a;font:14px sans-serif">Сбой рендера: '+(e&&e.message)+'</div>';}
+</script>
+</body>
+</html>
