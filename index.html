@@ -219,7 +219,7 @@ function render(){
   const empRows=list.map(r=>`<tr><td class="name">${r.fio}</td><td class="addr">${r.addr}</td><td class="c">${chk(r.m)}</td><td class="c">${chk(r.k)}</td><td class="c">${chk(r.a)}</td></tr>`).join("");
   const catBtn=(c,l)=>`<button data-cat="${c}" class="${CATS.includes(c)?'on':''}">${l}</button>`;
   const tuBtn=(v,l)=>`<button data-tu="${v}" class="${TU===v?'on':''}">${l}</button>`;
-  const snapInfo=`Статичный снимок на <b>16.06.2026</b> · копия для ознакомления (без сравнения и автообновления)`;
+  const _fd=s=>{const x=new Date(s);return String(x.getDate()).padStart(2,"0")+"."+String(x.getMonth()+1).padStart(2,"0")+"."+x.getFullYear();};const snapInfo=`Снимок на <b>`+_fd(SNAPS.current.takenAt)+`</b>`+(SNAPS.prev?` · динамика к `+_fd(SNAPS.prev.takenAt):` · без сравнения`);
 
   app.innerHTML=`
     <div class="snapbar">${snapInfo}</div>
@@ -236,7 +236,7 @@ function render(){
     <div class="cards">
       ${metric("Медкнижка",0,med)}${metric("Обучение (эквио)",1,ekv)}${metric("Аттестация",2,att)}
     </div>
-    <p class="section-t">Разбивка по ТУ — ${modeLabel} (Δ к пред. неделе)</p>
+    <p class="section-t">Разбивка по ТУ — ${modeLabel} ${SNAPS.prev?`(Δ к срезу `+_fd(SNAPS.prev.takenAt)+`)`:`(без сравнения)`}</p>
     <table>
       <thead><tr><th>ТУ</th><th>Чел.</th><th>Медкнижка</th><th>Обучение</th><th>Аттестация</th></tr></thead>
       <tbody>${ORDER.map(rowFor).join("")}${tot}</tbody>
