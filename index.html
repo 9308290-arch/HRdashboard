@@ -86,7 +86,7 @@ const FOLDER_ID="17Fgx4Sk6yiGK_LErB8Y3Ewz4GD-t2Hly";
 const READ="mcp__3338479c-e54f-4218-be35-39f4b8c75e46__read_file_content";
 const SEARCH="mcp__3338479c-e54f-4218-be35-39f4b8c75e46__search_files";
 const COPY="mcp__3338479c-e54f-4218-be35-39f4b8c75e46__copy_file";
-const TU_NAMES={R:"Тулебаев Р.",E:"Рукосуева Е.",V:"вакансия (МСК/МО)"};
+const TU_NAMES={R:"Тулебаев Р.",E:"Рукосуева Е.",V:"Краселюк В."};
 const ORDER=["R","E","V"];
 const LS={get:(k,d)=>{try{const v=localStorage.getItem(k);return v===null?d:v;}catch(e){return d;}},set:(k,v)=>{try{localStorage.setItem(k,v);}catch(e){}}};
 let MODE=LS.get("hr_mode","barista"), TU=LS.get("hr_tu","ALL");
@@ -234,7 +234,7 @@ function render(){
     </div></div>
     <div class="ctl-label">Управляющий (ТУ)</div>
     <div class="controls"><div class="btns">
-      ${tuBtn("ALL","Все")}${tuBtn("R","Тулебаев Р.")}${tuBtn("E","Рукосуева Е.")}${tuBtn("V","вакансия (МСК/МО)")}
+      ${tuBtn("ALL","Все")}${tuBtn("R","Тулебаев Р.")}${tuBtn("E","Рукосуева Е.")}${tuBtn("V","Краселюк В.")}
     </div></div>
     <p class="scope-line">${modeLabel} · <b>${scopeLabel}</b> · <b>${n}</b> чел.</p>
     <div class="cards">
